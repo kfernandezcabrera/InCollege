@@ -1,0 +1,36 @@
+Welcome to InCollege!
+Log In
+Create New Account
+Enter your choice:
+2
+Please enter your username:
+jsmith
+That username is already taken. Please choose another.
+Please enter your username:
+Pass123!
+Please enter your password:
+1
+Password must be 8-12 characters and include at least one capital letter, one digit, and one special character. Please try again.
+Please enter your password:
+jsmith
+Password must be 8-12 characters and include at least one capital letter, one digit, and one special character. Please try again.
+Please enter your password:
+Pass123!
+Account created successfully! You can now log in.
+Log In
+Create New Account
+Enter your choice:
+1
+Please enter your username:
+2
+Please enter your password:
+3
+Incorrect username/password, please try again
+Please enter your username:
+1
+Please enter your password:
+6
+Incorrect username/password, please try again
+Please enter your username:
+4
+Please enter your password:
