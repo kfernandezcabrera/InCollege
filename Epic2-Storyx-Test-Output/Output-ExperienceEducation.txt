@@ -1,0 +1,83 @@
+Welcome to InCollege!
+Log In
+Create New Account
+Enter your choice:
+1
+Please enter your username:
+Leia
+Please enter your password:
+Passw0r)
+You have successfully logged in.
+Welcome, Leia!
+1. Create/Edit My Profile
+2. View My Profile
+3. Search for a job
+4. Find someone you know
+5. Learn a New Skill
+6. Logout
+Enter your choice:
+1
+--- Create/Edit Profile ---
+Enter First Name:
+Leia
+Enter Last Name:
+Organa
+Enter University/College Attended:
+USF
+Enter Major:
+Political Science
+Enter Graduation Year (YYYY):
+2029
+Enter About Me (optional, max 200 chars, enter blank line to skip):
+
+Add Experience (optional, max 3 entries. Enter 'DONE' to finish):
+Experience 1
+Experience #1 - Company/Organization:
+Company 1
+Experience #1 - Dates (e.g., Summer 2024):
+2023
+Experience #1 - Description (optional, max 100 chars, blank to skip):
+Description 1
+Add Experience (optional, max 3 entries. Enter 'DONE' to finish):
+Experience 2
+Experience #2 - Company/Organization:
+Company 2
+Experience #2 - Dates (e.g., Summer 2024):
+2024
+Experience #2 - Description (optional, max 100 chars, blank to skip):
+Description 2
+Add Experience (optional, max 3 entries. Enter 'DONE' to finish):
+Experience 3
+Experience #3 - Company/Organization:
+Company 3
+Experience #3 - Dates (e.g., Summer 2024):
+2025
+Experience #3 - Description (optional, max 100 chars, blank to skip):
+Description 3
+Add Education (optional, max 3 entries. Enter 'DONE' to finish):
+Degree 1
+Education #1 - University/College:
+UCF
+Education #1 - Years Attended (e.g., 2023-2025):
+2023-2024
+Add Education (optional, max 3 entries. Enter 'DONE' to finish):
+Degree 2
+Education #2 - University/College:
+UF
+Education #2 - Years Attended (e.g., 2023-2025):
+2024-2025
+Add Education (optional, max 3 entries. Enter 'DONE' to finish):
+Degree 3
+Education #3 - University/College:
+USF
+Education #3 - Years Attended (e.g., 2023-2025):
+2025-2026
+Profile saved successfully!
+1. Create/Edit My Profile
+2. View My Profile
+3. Search for a job
+4. Find someone you know
+5. Learn a New Skill
+6. Logout
+Enter your choice:
+6
