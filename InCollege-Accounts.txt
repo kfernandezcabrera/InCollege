@@ -1,2 +1,4 @@
-jsmith              Pass123!
-Pass123!            Pass123!
+Anakin              ValidPswd1!
+Leia                Passw0r)
+Luke                goodPswd2?!
+Han                 12Password!!
