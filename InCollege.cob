@@ -1,11 +1,13 @@
 *>================================================================
       *> InCollege.cob
-      *> InCollege Alpha - Epic 1 + Epic 2: Login & Profile Management
+      *> InCollege Alpha - Epic 1 + Epic 2 + Epic 3:
+      *> Login, Profile Management, Profile Viewing & Basic Search
       *>
       *> Modular design:
       *>   1000 series  - startup / shutdown / persistence load-save
       *>   2000 series  - account creation & login
-      *>   3000 series  - post-login navigation (menu, skills, profile)
+      *>   3000 series  - post-login navigation (menu, skills, profile,
+      *>                  profile display, user search)
       *>   9000 series  - shared I/O helpers (screen+file, input+echo)
       *>================================================================
        >>SOURCE FORMAT FREE
@@ -172,6 +174,14 @@
            88  ADD-MORE                   VALUE 'Y'.
        01  WS-EXP-IDX                     PIC 9      VALUE 0.
        01  WS-EDU-IDX                     PIC 9      VALUE 0.
+
+      *> ---------- [EPIC3] User search working fields ----------
+      *> A full name is "first last": 30 + 1 + 30 characters.
+       01  WS-SEARCH-NAME                 PIC X(61)  VALUE SPACES.
+       01  WS-CANDIDATE-NAME              PIC X(61)  VALUE SPACES.
+       01  WS-SEARCH-SLOT                 PIC 9      VALUE 0.
+       01  WS-SEARCH-FLAG                 PIC X      VALUE 'N'.
+           88  SEARCH-HIT                 VALUE 'Y'.
 
        PROCEDURE DIVISION.
 
@@ -505,9 +515,7 @@
                                TO WS-MESSAGE
                            PERFORM 9100-DISPLAY-AND-WRITE
                        WHEN "4"
-                           MOVE "Find someone you know is under construction."
-                               TO WS-MESSAGE
-                           PERFORM 9100-DISPLAY-AND-WRITE
+                           PERFORM 3500-FIND-SOMEONE          *> [EPIC3]
                        WHEN "5"
                            PERFORM 3100-LEARN-SKILL-MENU
                        WHEN "6"
@@ -850,7 +858,7 @@
            MOVE "Profile saved successfully!" TO WS-MESSAGE
            PERFORM 9100-DISPLAY-AND-WRITE.
 
-      *> [EPIC2] Display the current user's profile.
+      *> [EPIC3] Display the logged-in user's own profile.
        3300-VIEW-PROFILE.
            PERFORM 3240-FIND-PROFILE
            IF NOT PROFILE-EXISTS
@@ -858,114 +866,181 @@
                    TO WS-MESSAGE
                PERFORM 9100-DISPLAY-AND-WRITE
            ELSE
-               MOVE WS-PROFILE-SLOT TO PROF-IDX
                MOVE "--- Your Profile ---" TO WS-MESSAGE
                PERFORM 9100-DISPLAY-AND-WRITE
+               MOVE WS-PROFILE-SLOT TO PROF-IDX
+               PERFORM 3400-DISPLAY-PROFILE
+               MOVE "--------------------" TO WS-MESSAGE
+               PERFORM 9100-DISPLAY-AND-WRITE
+           END-IF.
 
-               MOVE SPACES TO WS-MESSAGE
-               STRING "Name: " DELIMITED BY SIZE
-                   FUNCTION TRIM(WS-PROF-FIRST-NAME(PROF-IDX))
+      *> [EPIC3] Render every stored field of the profile sitting in
+      *> slot PROF-IDX. Shared by "View My Profile" and by the name
+      *> search so both paths produce an identical layout.
+       3400-DISPLAY-PROFILE.
+           MOVE SPACES TO WS-MESSAGE
+           STRING "==== Profile for " DELIMITED BY SIZE
+               FUNCTION TRIM(WS-PROF-FIRST-NAME(PROF-IDX))
+               DELIMITED BY SIZE
+               " " DELIMITED BY SIZE
+               FUNCTION TRIM(WS-PROF-LAST-NAME(PROF-IDX))
+               DELIMITED BY SIZE
+               INTO WS-MESSAGE
+           PERFORM 9100-DISPLAY-AND-WRITE
+
+           MOVE SPACES TO WS-MESSAGE
+           STRING "Name: " DELIMITED BY SIZE
+               FUNCTION TRIM(WS-PROF-FIRST-NAME(PROF-IDX))
+               DELIMITED BY SIZE
+               " " DELIMITED BY SIZE
+               FUNCTION TRIM(WS-PROF-LAST-NAME(PROF-IDX))
+               DELIMITED BY SIZE
+               INTO WS-MESSAGE
+           PERFORM 9100-DISPLAY-AND-WRITE
+
+           MOVE SPACES TO WS-MESSAGE
+           STRING "University: " DELIMITED BY SIZE
+               FUNCTION TRIM(WS-PROF-UNIVERSITY(PROF-IDX))
+               DELIMITED BY SIZE
+               INTO WS-MESSAGE
+           PERFORM 9100-DISPLAY-AND-WRITE
+
+           MOVE SPACES TO WS-MESSAGE
+           STRING "Major: " DELIMITED BY SIZE
+               FUNCTION TRIM(WS-PROF-MAJOR(PROF-IDX))
+               DELIMITED BY SIZE
+               INTO WS-MESSAGE
+           PERFORM 9100-DISPLAY-AND-WRITE
+
+           MOVE SPACES TO WS-MESSAGE
+           STRING "Graduation Year: " DELIMITED BY SIZE
+               WS-PROF-GRAD-YEAR(PROF-IDX)
+               DELIMITED BY SIZE
+               INTO WS-MESSAGE
+           PERFORM 9100-DISPLAY-AND-WRITE
+
+           MOVE SPACES TO WS-MESSAGE
+           STRING "About Me: " DELIMITED BY SIZE
+               FUNCTION TRIM(WS-PROF-ABOUT-ME(PROF-IDX))
+               DELIMITED BY SIZE
+               INTO WS-MESSAGE
+           PERFORM 9100-DISPLAY-AND-WRITE
+
+           IF WS-PROF-EXP-COUNT(PROF-IDX) > 0
+               MOVE "Experience:" TO WS-MESSAGE
+               PERFORM 9100-DISPLAY-AND-WRITE
+               PERFORM VARYING WS-J FROM 1 BY 1
+                       UNTIL WS-J > WS-PROF-EXP-COUNT(PROF-IDX)
+                   MOVE SPACES TO WS-MESSAGE
+                   STRING "  Title: " DELIMITED BY SIZE
+                       FUNCTION TRIM(WS-PROF-EXP-TITLE(PROF-IDX, WS-J))
+                       DELIMITED BY SIZE
+                       INTO WS-MESSAGE
+                   PERFORM 9100-DISPLAY-AND-WRITE
+
+                   MOVE SPACES TO WS-MESSAGE
+                   STRING "  Company: " DELIMITED BY SIZE
+                       FUNCTION TRIM(WS-PROF-EXP-COMPANY(PROF-IDX, WS-J))
+                       DELIMITED BY SIZE
+                       INTO WS-MESSAGE
+                   PERFORM 9100-DISPLAY-AND-WRITE
+
+                   MOVE SPACES TO WS-MESSAGE
+                   STRING "  Dates: " DELIMITED BY SIZE
+                       FUNCTION TRIM(WS-PROF-EXP-DATES(PROF-IDX, WS-J))
+                       DELIMITED BY SIZE
+                       INTO WS-MESSAGE
+                   PERFORM 9100-DISPLAY-AND-WRITE
+
+                   MOVE SPACES TO WS-MESSAGE
+                   STRING "  Description: " DELIMITED BY SIZE
+                       FUNCTION TRIM(WS-PROF-EXP-DESC(PROF-IDX, WS-J))
+                       DELIMITED BY SIZE
+                       INTO WS-MESSAGE
+                   PERFORM 9100-DISPLAY-AND-WRITE
+               END-PERFORM
+           ELSE
+               MOVE "Experience: None" TO WS-MESSAGE
+               PERFORM 9100-DISPLAY-AND-WRITE
+           END-IF
+
+           IF WS-PROF-EDU-COUNT(PROF-IDX) > 0
+               MOVE "Education:" TO WS-MESSAGE
+               PERFORM 9100-DISPLAY-AND-WRITE
+               PERFORM VARYING WS-J FROM 1 BY 1
+                       UNTIL WS-J > WS-PROF-EDU-COUNT(PROF-IDX)
+                   MOVE SPACES TO WS-MESSAGE
+                   STRING "  Degree: " DELIMITED BY SIZE
+                       FUNCTION TRIM(WS-PROF-EDU-DEGREE(PROF-IDX, WS-J))
+                       DELIMITED BY SIZE
+                       INTO WS-MESSAGE
+                   PERFORM 9100-DISPLAY-AND-WRITE
+
+                   MOVE SPACES TO WS-MESSAGE
+                   STRING "  University: " DELIMITED BY SIZE
+                       FUNCTION TRIM(WS-PROF-EDU-UNIV(PROF-IDX, WS-J))
+                       DELIMITED BY SIZE
+                       INTO WS-MESSAGE
+                   PERFORM 9100-DISPLAY-AND-WRITE
+
+                   MOVE SPACES TO WS-MESSAGE
+                   STRING "  Years: " DELIMITED BY SIZE
+                       FUNCTION TRIM(WS-PROF-EDU-YEARS(PROF-IDX, WS-J))
+                       DELIMITED BY SIZE
+                       INTO WS-MESSAGE
+                   PERFORM 9100-DISPLAY-AND-WRITE
+               END-PERFORM
+           ELSE
+               MOVE "Education: None" TO WS-MESSAGE
+               PERFORM 9100-DISPLAY-AND-WRITE
+           END-IF.
+
+      *> [EPIC3] "Find someone you know": prompt for a full name, show
+      *> that person's profile when it matches, otherwise say so. The
+      *> post-login menu is redisplayed afterwards either way, which is
+      *> how the user returns to the top level menu.
+       3500-FIND-SOMEONE.
+           MOVE "Enter the full name of the person you are looking for:"
+               TO WS-MESSAGE
+           PERFORM 9100-DISPLAY-AND-WRITE
+           PERFORM 9200-READ-AND-ECHO
+           IF NOT END-OF-INPUT
+               MOVE FUNCTION TRIM(WS-RAW-LINE) TO WS-SEARCH-NAME
+               PERFORM 3510-SEARCH-BY-FULL-NAME
+               IF SEARCH-HIT
+                   MOVE "--- Found User Profile ---" TO WS-MESSAGE
+                   PERFORM 9100-DISPLAY-AND-WRITE
+                   MOVE WS-SEARCH-SLOT TO PROF-IDX
+                   PERFORM 3400-DISPLAY-PROFILE
+                   MOVE "-------------------------" TO WS-MESSAGE
+                   PERFORM 9100-DISPLAY-AND-WRITE
+               ELSE
+                   MOVE "No one by that name could be found."
+                       TO WS-MESSAGE
+                   PERFORM 9100-DISPLAY-AND-WRITE
+               END-IF
+           END-IF.
+
+      *> Exact match of "first last" against every stored profile.
+      *> A partial name never matches because the whole assembled
+      *> name has to be identical to what was typed.
+       3510-SEARCH-BY-FULL-NAME.
+           MOVE 'N' TO WS-SEARCH-FLAG
+           MOVE 0   TO WS-SEARCH-SLOT
+           PERFORM VARYING PROF-IDX FROM 1 BY 1
+                   UNTIL PROF-IDX > WS-PROFILE-COUNT OR SEARCH-HIT
+               MOVE SPACES TO WS-CANDIDATE-NAME
+               STRING FUNCTION TRIM(WS-PROF-FIRST-NAME(PROF-IDX))
                    DELIMITED BY SIZE
                    " " DELIMITED BY SIZE
                    FUNCTION TRIM(WS-PROF-LAST-NAME(PROF-IDX))
                    DELIMITED BY SIZE
-                   INTO WS-MESSAGE
-               PERFORM 9100-DISPLAY-AND-WRITE
-
-               MOVE SPACES TO WS-MESSAGE
-               STRING "University: " DELIMITED BY SIZE
-                   FUNCTION TRIM(WS-PROF-UNIVERSITY(PROF-IDX))
-                   DELIMITED BY SIZE
-                   INTO WS-MESSAGE
-               PERFORM 9100-DISPLAY-AND-WRITE
-
-               MOVE SPACES TO WS-MESSAGE
-               STRING "Major: " DELIMITED BY SIZE
-                   FUNCTION TRIM(WS-PROF-MAJOR(PROF-IDX))
-                   DELIMITED BY SIZE
-                   INTO WS-MESSAGE
-               PERFORM 9100-DISPLAY-AND-WRITE
-
-               MOVE SPACES TO WS-MESSAGE
-               STRING "Graduation Year: " DELIMITED BY SIZE
-                   WS-PROF-GRAD-YEAR(PROF-IDX)
-                   DELIMITED BY SIZE
-                   INTO WS-MESSAGE
-               PERFORM 9100-DISPLAY-AND-WRITE
-
-               MOVE SPACES TO WS-MESSAGE
-               STRING "About Me: " DELIMITED BY SIZE
-                   FUNCTION TRIM(WS-PROF-ABOUT-ME(PROF-IDX))
-                   DELIMITED BY SIZE
-                   INTO WS-MESSAGE
-               PERFORM 9100-DISPLAY-AND-WRITE
-
-               IF WS-PROF-EXP-COUNT(PROF-IDX) > 0
-                   MOVE "Experience:" TO WS-MESSAGE
-                   PERFORM 9100-DISPLAY-AND-WRITE
-                   PERFORM VARYING WS-J FROM 1 BY 1
-                           UNTIL WS-J > WS-PROF-EXP-COUNT(PROF-IDX)
-                       MOVE SPACES TO WS-MESSAGE
-                       STRING "  Title: " DELIMITED BY SIZE
-                           FUNCTION TRIM(WS-PROF-EXP-TITLE(PROF-IDX, WS-J))
-                           DELIMITED BY SIZE
-                           INTO WS-MESSAGE
-                       PERFORM 9100-DISPLAY-AND-WRITE
-
-                       MOVE SPACES TO WS-MESSAGE
-                       STRING "  Company: " DELIMITED BY SIZE
-                           FUNCTION TRIM(WS-PROF-EXP-COMPANY(PROF-IDX, WS-J))
-                           DELIMITED BY SIZE
-                           INTO WS-MESSAGE
-                       PERFORM 9100-DISPLAY-AND-WRITE
-
-                       MOVE SPACES TO WS-MESSAGE
-                       STRING "  Dates: " DELIMITED BY SIZE
-                           FUNCTION TRIM(WS-PROF-EXP-DATES(PROF-IDX, WS-J))
-                           DELIMITED BY SIZE
-                           INTO WS-MESSAGE
-                       PERFORM 9100-DISPLAY-AND-WRITE
-
-                       MOVE SPACES TO WS-MESSAGE
-                       STRING "  Description: " DELIMITED BY SIZE
-                           FUNCTION TRIM(WS-PROF-EXP-DESC(PROF-IDX, WS-J))
-                           DELIMITED BY SIZE
-                           INTO WS-MESSAGE
-                       PERFORM 9100-DISPLAY-AND-WRITE
-                   END-PERFORM
+                   INTO WS-CANDIDATE-NAME
+               IF WS-CANDIDATE-NAME = WS-SEARCH-NAME
+                   MOVE 'Y' TO WS-SEARCH-FLAG
+                   MOVE PROF-IDX TO WS-SEARCH-SLOT
                END-IF
-
-               IF WS-PROF-EDU-COUNT(PROF-IDX) > 0
-                   MOVE "Education:" TO WS-MESSAGE
-                   PERFORM 9100-DISPLAY-AND-WRITE
-                   PERFORM VARYING WS-J FROM 1 BY 1
-                           UNTIL WS-J > WS-PROF-EDU-COUNT(PROF-IDX)
-                       MOVE SPACES TO WS-MESSAGE
-                       STRING "  Degree: " DELIMITED BY SIZE
-                           FUNCTION TRIM(WS-PROF-EDU-DEGREE(PROF-IDX, WS-J))
-                           DELIMITED BY SIZE
-                           INTO WS-MESSAGE
-                       PERFORM 9100-DISPLAY-AND-WRITE
-
-                       MOVE SPACES TO WS-MESSAGE
-                       STRING "  University: " DELIMITED BY SIZE
-                           FUNCTION TRIM(WS-PROF-EDU-UNIV(PROF-IDX, WS-J))
-                           DELIMITED BY SIZE
-                           INTO WS-MESSAGE
-                       PERFORM 9100-DISPLAY-AND-WRITE
-
-                       MOVE SPACES TO WS-MESSAGE
-                       STRING "  Years: " DELIMITED BY SIZE
-                           FUNCTION TRIM(WS-PROF-EDU-YEARS(PROF-IDX, WS-J))
-                           DELIMITED BY SIZE
-                           INTO WS-MESSAGE
-                       PERFORM 9100-DISPLAY-AND-WRITE
-                   END-PERFORM
-               END-IF
-
-               MOVE "---" TO WS-MESSAGE
-               PERFORM 9100-DISPLAY-AND-WRITE
-           END-IF.
+           END-PERFORM.
 
       *>----------------------------------------------------------------
       *> 9000 SERIES - SHARED I/O HELPERS

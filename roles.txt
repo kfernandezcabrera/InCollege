@@ -1,0 +1,8 @@
+Epic #3
+
+Roles and Members:
+- Scrum Master: Esmeralda Garcia-Santiago
+- Developer #1: Rodela Ghosh
+- Developer #2: Kelvin Fernandez Cabrera
+- Tester #1: Joseph Flynn
+- Tester #2: Amrit Selva Ganesh
